@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Spot Racer</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main">Spot Racer</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_settings">My Profile</string>
+    <string name="title_activity_follow">FollowActivity</string>
+</resources>
