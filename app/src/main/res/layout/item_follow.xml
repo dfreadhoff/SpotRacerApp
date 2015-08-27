@@ -1,0 +1,52 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:descendantFocusability="blocksDescendants"
+    android:weightSum="1">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_weight="0.08">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="0.8"
+        android:layout_row="2">
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="36dp"
+            android:id="@+id/list_item"
+            android:padding="6dp"
+            android:textSize="20dp"
+            android:text="Example Person"/>
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="28dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:padding="6dp"
+            android:id="@+id/detail"
+            android:textColorHighlight="#555658"
+            android:text="2016-03-38, Not Registered" />
+
+    </LinearLayout>
+        <CheckBox
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/checkBox"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="0.05"
+            android:elegantTextHeight="false"
+            android:clickable="false" />
+</LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"/>
+</LinearLayout>

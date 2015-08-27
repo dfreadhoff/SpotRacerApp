@@ -1,49 +1,31 @@
 package com.endurata.spotracer;
 
-import android.app.ProgressDialog;
-import android.os.AsyncTask;
+import android.app.Fragment;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.Button;
 
-import com.endurata.spotracer.RaceList.RaceArrayAdapter;
+import java.util.ArrayList;
 
-public class FollowActivity extends ActionBarActivity {
-    ListView listView ;
-    RaceArrayAdapter mRaceAdapter ;
-    private String athleteId;
-
+public class FollowActivity extends ActionBarActivity implements Button.OnClickListener, FollowFragment.OnFragmentInteractionListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_follow);
 
-        listView = (ListView) findViewById(R.id.list);
-        mRaceAdapter = new RaceArrayAdapter(this);
+        Button btn = (Button) findViewById(R.id.button) ;
+        btn.setOnClickListener(this);
 
-        // ListView Item Click Listener
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                // ListView Clicked item index
-                int itemPosition = position;
-                // ListView Clicked item value
-                String itemValue = (String) listView.getItemAtPosition(position);
-                // Show Alert
-                Toast.makeText(getApplicationContext(),
-                        "Position :" + itemPosition + "  ListItem : " + itemValue, Toast.LENGTH_LONG)
-                        .show();
-            }
-        });
+        Bundle bundl = new Bundle();
+        bundl.putString("AthleteID", "9974250f-d2ae-41de-aa9c-563315b08e6a");
+        bundl.putString("CourseID", "94");
 
-        new RetrieveFollowTask().execute();
-
+        FollowFragment f = (FollowFragment) getFragmentManager().findFragmentById(R.id.follow_fragment) ;
+        f.setArguements("9974250f-d2ae-41de-aa9c-563315b08e6a", "94") ;
     }
 
     @Override
@@ -68,32 +50,18 @@ public class FollowActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private class RetrieveFollowTask extends AsyncTask<String, Integer, Long> {
-        ProgressDialog progressDialog;
-        String mRaceValues[] ;
-
-        @Override
-        protected void onPreExecute() {
-            progressDialog = ProgressDialog.show(FollowActivity.this, "", "Downloading Followers");
-        }
-
-        @Override
-        protected Long doInBackground(String... parms) {
-            WSAssistant wa = new WSAssistant("http://engine.endurata.com:8080/axis2/services/RacerTracerService/getCourses?customerId=" + athleteId);
-            String response = wa.invokeService();
-            mRaceValues = response.split(";");
-            return 0l;
-        }
-
-        @Override
-        protected void onPostExecute(Long result) {
-            for (int i = 0; i < mRaceValues.length; i++)
-                mRaceAdapter.add(mRaceValues[i]);
-            mRaceAdapter.notifyDataSetChanged();
-            listView.setAdapter(mRaceAdapter);
-            progressDialog.dismiss();
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.button) {
+            Intent mapIntent = new Intent(FollowActivity.this, MapsActivity.class);
+            startActivity(mapIntent);
+            FollowFragment f = (FollowFragment) getFragmentManager().findFragmentById(R.id.follow_fragment) ;
+            f.onFinish();
         }
     }
 
+    @Override
+    public void onFragmentInteraction(String id) {
 
+    }
 }

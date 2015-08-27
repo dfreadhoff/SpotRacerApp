@@ -2,9 +2,7 @@
     <string name="app_name">Spot Racer</string>
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_main">Spot Racer</string>
-
-    <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Settings</string>
     <string name="title_activity_settings">My Profile</string>
-    <string name="title_activity_follow">FollowActivity</string>
+    <string name="title_activity_follow">Select Who To Follow</string>
+    <string name="settings">Settings</string>
 </resources>
