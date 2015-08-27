@@ -1,9 +1,14 @@
 package com.endurata.spotracer;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTabHost;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TabHost;
 
 import com.endurata.spotracer.ListAdapter.RaceArrayAdapter ;
 
@@ -20,6 +26,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
     private String mAthleteId;
     private ListView mListView ;
     private RaceArrayAdapter mRaceAdapter ;
+    private TabHost mTabHost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,11 +39,45 @@ Log.d("AthleteID", "Id is:" + mAthleteId) ;
             startActivity(settingsIntent);
         }
 //9974250f-d2ae-41de-aa9c-563315b08e6a
-        mListView = (ListView) findViewById(R.id.list);
-        mRaceAdapter = new RaceArrayAdapter(MainActivity.this);
+       // mListView = (ListView) findViewById(R.id.list);
+        //mRaceAdapter = new RaceArrayAdapter(MainActivity.this);
+        //mListView.setOnItemClickListener(this) ;
 
-        mListView.setOnItemClickListener(this) ;
-        new RetrieveCoursesTask().execute();
+        //new RetrieveCoursesTask().execute();
+
+        mTabHost = (TabHost)findViewById(android.R.id.tabhost);
+        mTabHost.setup();
+
+        //tHost.setOnTabChangedListener(tabChangeListener);
+
+        TabHost.TabSpec raceTab = mTabHost.newTabSpec("race");
+        raceTab.setIndicator("Course");//",getResources().getDrawable(R.drawable.android
+        raceTab.setContent(new DummyTabContent(getBaseContext()));
+        mTabHost.addTab(raceTab);
+
+        TabHost.TabSpec followTab = mTabHost.newTabSpec("follow");
+        followTab.setIndicator("Follow");
+        followTab.setContent(new DummyTabContent(getBaseContext()));
+        mTabHost.addTab(followTab);
+
+        TabHost.TabSpec mapTab = mTabHost.newTabSpec("map");
+        mapTab.setIndicator("Map");
+        mapTab.setContent(new DummyTabContent(getBaseContext()));
+        mTabHost.addTab(mapTab);
+
+    }
+    public class DummyTabContent implements TabHost.TabContentFactory {
+        private Context mContext;
+
+        public DummyTabContent(Context context){
+            mContext = context;
+        }
+
+        @Override
+        public View createTabContent(String tag) {
+            View v = new View(mContext);
+            return v;
+        }
     }
 
     @Override
@@ -120,5 +161,47 @@ Log.d("AthleteID", "Id is:" + mAthleteId) ;
             return mAthleteId;
         }
     }
+    TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
+
+        @Override
+        public void onTabChanged(String tabId) {
+            FragmentManager fm =   getSupportFragmentManager();
+            RaceFragment raceFragment = (RaceFragment) fm.findFragmentByTag("android");
+            FollowFragment appleFragment = (FollowFragment) fm.findFragmentByTag("followFragment");
+            FragmentTransaction ft = fm.beginTransaction();
+
+            /** Detaches the androidfragment if exists */
+            if(raceFragment!=null)
+                ft.detach(raceFragment);
+
+            /** Detaches the applefragment if exists */
+            if(FollowFragment!=null)
+                ft.detach(FollowFragment);
+
+            /** If current tab is android */
+            if(tabId.equalsIgnoreCase("race")){
+
+                if(raceFragment==null){
+                    /** Create AndroidFragment and adding to fragmenttransaction */
+                    ft.add(R.id.tab,new AndroidFragment(), "android");
+                }else{
+                    /** Bring to the front, if already exists in the fragmenttransaction */
+                    ft.attach(androidFragment);
+                }
+
+            }else{    /** If current tab is apple */
+                if(appleFragment==null){
+                    /** Create AppleFragment and adding to fragmenttransaction */
+                    ft.add(R.id.realtabcontent,new AppleFragment(), "apple");
+                }else{
+                    /** Bring to the front, if already exists in the fragmenttransaction */
+                    ft.attach(appleFragment);
+                }
+            }
+            ft.commit();
+        }
+    };
+
+
 
 }
