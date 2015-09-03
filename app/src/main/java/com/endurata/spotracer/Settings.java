@@ -9,6 +9,8 @@ import android.util.Log;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.endurata.spotracer.utils.WSAssistant;
+
 public class Settings extends ActionBarActivity {
     private  String mAthleteId;
 

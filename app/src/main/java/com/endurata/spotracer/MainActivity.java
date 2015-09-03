@@ -1,54 +1,44 @@
 package com.endurata.spotracer;
 
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTabHost;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TabHost;
 
-import com.endurata.spotracer.ListAdapter.RaceArrayAdapter ;
+import com.endurata.spotracer.utils.WSAssistant;
 
-public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
+public class MainActivity extends FragmentActivity implements RaceFragment.OnRaceInteractionListener {
 
     private String mAthleteId;
-    private ListView mListView ;
-    private RaceArrayAdapter mRaceAdapter ;
+    private String mCourseId;
     private TabHost mTabHost;
+    private boolean mIsAthlete;
+    private String mCourseGPX;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         readSettings() ;
-Log.d("AthleteID", "Id is:" + mAthleteId) ;
+
         if (mAthleteId.length() == 0) {
             Intent settingsIntent = new Intent(this, Settings.class);
             startActivity(settingsIntent);
         }
 //9974250f-d2ae-41de-aa9c-563315b08e6a
-       // mListView = (ListView) findViewById(R.id.list);
-        //mRaceAdapter = new RaceArrayAdapter(MainActivity.this);
-        //mListView.setOnItemClickListener(this) ;
-
-        //new RetrieveCoursesTask().execute();
-
         mTabHost = (TabHost)findViewById(android.R.id.tabhost);
         mTabHost.setup();
 
-        //tHost.setOnTabChangedListener(tabChangeListener);
+        mTabHost.setOnTabChangedListener(tabChangeListener);
 
         TabHost.TabSpec raceTab = mTabHost.newTabSpec("race");
         raceTab.setIndicator("Course");//",getResources().getDrawable(R.drawable.android
@@ -64,8 +54,27 @@ Log.d("AthleteID", "Id is:" + mAthleteId) ;
         mapTab.setIndicator("Map");
         mapTab.setContent(new DummyTabContent(getBaseContext()));
         mTabHost.addTab(mapTab);
-
     }
+
+    @Override
+    public void onRaceInteraction(String raceData[]) {
+        mCourseId = raceData[0] ;
+        mCourseGPX = raceData[7] ;
+
+        RoleAlert roleAlert = new RoleAlert();
+        roleAlert.show(getFragmentManager(), "roleAlert");
+        roleAlert.addListener(new RoleAlert.RoleAlertListener(){
+            @Override
+            public void onAlertClick(int which) {
+                //Toast.makeText(MainActivity.this, "which is " + which, Toast.LENGTH_SHORT).show();
+                if (which != -2) {  // negative 2 is cancel
+                    mIsAthlete = (which == 1) ;  // index 0 is spectator, index 1 is athlete
+                    mTabHost.setCurrentTab(1);
+                }
+            }
+        });
+    }
+
     public class DummyTabContent implements TabHost.TabContentFactory {
         private Context mContext;
 
@@ -109,43 +118,6 @@ Log.d("AthleteID", "Id is:" + mAthleteId) ;
         mAthleteId = prefs.getString("AthleteId", "");
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Intent sttingsIntent = new Intent(MainActivity.this, FollowActivity.class);
-
-        int itemPosition  = position;
-        sttingsIntent.putExtra("key", mRaceAdapter.getItem(itemPosition).split(",")[0]);
-
-        startActivity(sttingsIntent);
-    }
-
-    private class RetrieveCoursesTask extends AsyncTask<String, Integer, Long> {
-        ProgressDialog progressDialog;
-        String mRaceValues[] ;
-
-        @Override
-        protected void onPreExecute() {
-            progressDialog = ProgressDialog.show(MainActivity.this, "", "Downloading Races");
-        }
-
-        @Override
-        protected Long doInBackground(String... parms) {
-            WSAssistant wa = new WSAssistant("http://engine.endurata.com:8080/axis2/services/RacerTracerService/getCourses?customerId=" + mAthleteId);
-            String response = wa.invokeService();
-            mRaceValues = response.split(";");
-             return 0l;
-        }
-
-        @Override
-        protected void onPostExecute(Long result) {
-            for (int i = 0; i < mRaceValues.length; i++)
-               mRaceAdapter.add(mRaceValues[i]);
-            mRaceAdapter.notifyDataSetChanged();
-            mListView.setAdapter(mRaceAdapter);
-            progressDialog.dismiss();
-        }
-    }
-
     private class RegisterAthleteTask extends AsyncTask<String,Void,String> {
 
         protected String doInBackground(String... parms) {
@@ -161,47 +133,56 @@ Log.d("AthleteID", "Id is:" + mAthleteId) ;
             return mAthleteId;
         }
     }
+
+    private String mLastTab="0";
     TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
 
         @Override
         public void onTabChanged(String tabId) {
-            FragmentManager fm =   getSupportFragmentManager();
-            RaceFragment raceFragment = (RaceFragment) fm.findFragmentByTag("android");
-            FollowFragment appleFragment = (FollowFragment) fm.findFragmentByTag("followFragment");
+            mLastTab = tabId ;
+            FragmentManager fm = getFragmentManager();
+            RaceFragment raceFragment = (RaceFragment) fm.findFragmentByTag("race");
+            FollowFragment followFragment = (FollowFragment) fm.findFragmentByTag("follow");
+            MapFragment mapFragment = (MapFragment) fm.findFragmentByTag("map");
             FragmentTransaction ft = fm.beginTransaction();
 
-            /** Detaches the androidfragment if exists */
             if(raceFragment!=null)
                 ft.detach(raceFragment);
+            if(followFragment!=null) {
+                ft.detach(followFragment);
+                if (mLastTab.equals("1"))
+                    followFragment.onFinish();
+            }
+            if(mapFragment!=null)
+                ft.detach(mapFragment);
 
-            /** Detaches the applefragment if exists */
-            if(FollowFragment!=null)
-                ft.detach(FollowFragment);
-
-            /** If current tab is android */
-            if(tabId.equalsIgnoreCase("race")){
-
-                if(raceFragment==null){
-                    /** Create AndroidFragment and adding to fragmenttransaction */
-                    ft.add(R.id.tab,new AndroidFragment(), "android");
-                }else{
-                    /** Bring to the front, if already exists in the fragmenttransaction */
-                    ft.attach(androidFragment);
+            if(tabId.equalsIgnoreCase("race")) {
+                if (raceFragment == null) {
+                    raceFragment = new RaceFragment() ;
+                    ft.add(android.R.id.tabcontent, raceFragment, "race");
+                } else {
+                    ft.attach(raceFragment);
                 }
-
-            }else{    /** If current tab is apple */
-                if(appleFragment==null){
-                    /** Create AppleFragment and adding to fragmenttransaction */
-                    ft.add(R.id.realtabcontent,new AppleFragment(), "apple");
+                raceFragment.setAthleteId(mAthleteId);
+            }else if(tabId.equalsIgnoreCase("follow")){
+                if(followFragment==null){
+                    followFragment = new FollowFragment() ;
+                    ft.add(android.R.id.tabcontent, followFragment, "follow");
                 }else{
-                    /** Bring to the front, if already exists in the fragmenttransaction */
-                    ft.attach(appleFragment);
+                    ft.attach(followFragment);
                 }
+                followFragment.setAthleteId(mAthleteId);
+                followFragment.setCourseID(mCourseId);
+            }else{
+                if(mapFragment==null){
+                    mapFragment = new MapFragment() ;
+                    ft.add(android.R.id.tabcontent, mapFragment, "map");
+                }else{
+                    ft.attach(mapFragment);
+                }
+                mapFragment.setCourse(mCourseGPX) ;
             }
             ft.commit();
         }
     };
-
-
-
 }

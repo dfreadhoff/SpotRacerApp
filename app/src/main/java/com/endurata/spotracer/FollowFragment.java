@@ -1,10 +1,10 @@
 package com.endurata.spotracer;
 
 import android.app.Activity;
+import android.app.ListFragment;
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.endurata.spotracer.DataStructs.FollowAthleteStruct;
 import com.endurata.spotracer.ListAdapter.FollowArrayAdapter;
+import com.endurata.spotracer.utils.WSAssistant;
 
 import java.util.ArrayList;
 
@@ -31,14 +32,21 @@ import java.util.ArrayList;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class FollowFragment extends Fragment implements ListView.OnItemClickListener {
+public class FollowFragment extends ListFragment implements ListView.OnItemClickListener {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "AthleteID";
-    private static final String ARG_PARAM2 = "CourseID";
+    public static final String ARG_ATHLETE = "AthleteID";
+    public static final String ARG_COURSE = "CourseID";
 
-    // TODO: Rename and change types of parameters
+    public void setCourseID(String mCourseID) {
+        this.mCourseID = mCourseID;
+    }
+
+    public void setAthleteId(String mAthleteId) {
+        this.mAthleteId = mAthleteId;
+    }
+
     private String mCourseID;
     private String mAthleteId;
 
@@ -51,8 +59,8 @@ public class FollowFragment extends Fragment implements ListView.OnItemClickList
     public static FollowFragment newInstance(String param1, String param2) {
         FollowFragment fragment = new FollowFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_ATHLETE, param1);
+        args.putString(ARG_COURSE, param2);
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,28 +81,29 @@ public class FollowFragment extends Fragment implements ListView.OnItemClickList
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            mAthleteId = getArguments().getString(ARG_PARAM1);
-            mCourseID = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        new RetrieveFollowTask().execute("", mAthleteId);
-    }
+
+        // Set OnItemClickListener so we can be notified on item clicks
+        mListView.setOnItemClickListener(this);
+     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_follow_list, container, false);
 
+        View view = inflater.inflate(R.layout.fragment_follow_list, container, false);
         mListView = (ListView) view.findViewById(android.R.id.list);
         mAdapter = new FollowArrayAdapter(getActivity());
 
-        // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+        if (getArguments() != null) {
+            mAthleteId = getArguments().getString(ARG_ATHLETE);
+            mCourseID = getArguments().getString(ARG_COURSE);
+        }
+        new RetrieveFollowTask().execute("", mAthleteId);
 
         final EditText lastNameEditText = (EditText) view.findViewById(R.id.textViewLastName);
         final TextWatcher TextChange = new TextWatcher() {
@@ -113,7 +122,7 @@ public class FollowFragment extends Fragment implements ListView.OnItemClickList
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        mListener = (OnFragmentInteractionListener) activity;
+        //mListener = (OnFragmentInteractionListener) activity;
     }
 
     @Override
@@ -124,15 +133,12 @@ public class FollowFragment extends Fragment implements ListView.OnItemClickList
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
-
-            CheckBox cb = (CheckBox) view.findViewById(R.id.checkBox);
-            cb.setChecked(!cb.isChecked());
-            FollowAthleteStruct person = mAdapter.getFollowAthleteStructItem(position);
-            person.setIsFollowing(cb.isChecked() ? "1" : "0");
-            mTransactions.add(person);
-        }
-    }
+        CheckBox cb = (CheckBox) view.findViewById(R.id.checkBox);
+        cb.setChecked(!cb.isChecked());
+        FollowAthleteStruct person = mAdapter.getFollowAthleteStructItem(position);
+        person.setIsFollowing(cb.isChecked() ? "1" : "0");
+        mTransactions.add(person);
+     }
 
     /**
      * The default content for this Fragment has a TextView that is shown when

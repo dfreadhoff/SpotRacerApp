@@ -1,4 +1,4 @@
-package com.endurata.spotracer;
+package com.endurata.spotracer.utils;
 
 import android.util.Log;
 

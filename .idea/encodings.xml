@@ -1,7 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/WSAssistant.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/GPXConstants.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/GPXParser.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/InvalidGPXException.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Bounds.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Copyright.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Email.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Extensions.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Fix.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/GPX.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Link.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Metadata.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Person.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Point.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/PointSegment.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Route.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Track.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/TrackSegment.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/javagpx/types/Waypoint.java" charset="windows-1252" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/endurata/spotracer/utils/WSAssistant.java" charset="windows-1252" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>
