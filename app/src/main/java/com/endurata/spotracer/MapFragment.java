@@ -11,7 +11,6 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,33 +29,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A fragment representing a list of Items.
- * <p/>
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
- * interface.
- */
 public class MapFragment extends Fragment implements View.OnClickListener, SystemTimerAndroid.SystemTimerListener {
 
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
@@ -67,6 +47,8 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
     private LocationListener locationListener;
     private Marker mMyMarker;
     private GPX mGPX;
+    private View mView;
+    private boolean mMapIsDirty;
 
     public void setAthleteId(String mAthleteId) {
         this.mAthleteId = mAthleteId;
@@ -74,11 +56,13 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
 
     private String mAthleteId;
 
-    public void setCourse(String mCourse) {
-        this.mCourse = mCourse;
+    public void setCourse(String course) {
+        if (!this.mCourse.equals(course))
+            mMapIsDirty = true ;
+        this.mCourse = course;
     }
 
-    private String mCourse;
+    private String mCourse = "" ;
 
     /**
      * The Adapter which will be used to populate the ListView/GridView with
@@ -107,21 +91,22 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
         if (getArguments() != null) {
         }
 
+        // Get GPS location
+        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_maps, container, false);
-        Button transmitButton = (Button) view.findViewById(R.id.transmitButton);
+        if (mView == null) mView = inflater.inflate(R.layout.activity_maps, container, false);
+
+        Button transmitButton = (Button) mView.findViewById(R.id.transmitButton);
         transmitButton.setOnClickListener(this);
 
-        // Get GPS location
-        locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-
         setUpMapIfNeeded();
-        return view;
+        return mView;
     }
+
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
         if (mMap == null) {
@@ -129,9 +114,9 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
             FragmentActivity app = (FragmentActivity) getActivity();
             mMap = ((SupportMapFragment) app.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
             // Check if we were successful in obtaining the map.
-            if (mMap != null) {
-                setUpMap();
             }
+        if (mMap != null) {
+            setUpMap();
         }
     }
 
@@ -153,9 +138,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
     }
 
     private void setUpMap() {
-        new RetrieveCourseGPXTask().execute();
-
-        mMyMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        if (mMapIsDirty) new RetrieveCourseGPXTask().execute();
     }
 
     @Override
@@ -185,7 +168,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
             String lastLatitude = Location.convert(location.getLatitude(), Location.FORMAT_DEGREES);
             String lastLongitude = Location.convert(location.getLongitude(), Location.FORMAT_DEGREES);
-            //new SendAthletePositionTask().execute(lastLatitude, lastLongitude, "true");
+            new SendAthletePositionTask().execute(lastLatitude, lastLongitude, "true");
         }
     }
 
@@ -234,18 +217,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
         }
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         public void onFragmentInteraction(String id);
     }
 
@@ -280,11 +252,12 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
                     }
                 }
             }
+            mMap.clear();
             PolylineOptions lineOptions = new PolylineOptions().width(6).color(Color.BLUE);
             Polyline lineRoute = mMap.addPolyline(lineOptions);
             lineRoute.setPoints(points);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(points.get(0), 13));
-
+            mMapIsDirty = false ;
             progressDialog.dismiss();
         }
     }
