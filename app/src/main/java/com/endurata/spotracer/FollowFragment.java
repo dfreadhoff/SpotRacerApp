@@ -130,6 +130,13 @@ public class FollowFragment extends ListFragment implements ListView.OnItemClick
         super.onDetach();
         mListener = null;
     }
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // OnStop is called when the fragment is detached
+        new RegisterFollowTask().execute();
+    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -222,9 +229,5 @@ public class FollowFragment extends ListFragment implements ListView.OnItemClick
         protected void onPostExecute(Long result) {
             //progressDialog.dismiss();
         }
-    }
-
-    public void onFinish() {
-        new RegisterFollowTask().execute();
     }
 }

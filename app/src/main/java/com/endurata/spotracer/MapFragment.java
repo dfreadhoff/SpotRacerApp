@@ -55,6 +55,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
     }
 
     private String mAthleteId;
+    public static final String ARG_COURSE_GFX = "course";
 
     public void setCourse(String course) {
         if (!this.mCourse.equals(course))
@@ -64,12 +65,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
 
     private String mCourse = "" ;
 
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-
-    // TODO: Rename and change types of parameters
     public static MapFragment newInstance(String param1, String param2) {
         MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
@@ -88,8 +83,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-        }
 
         // Get GPS location
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
@@ -102,6 +95,11 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
 
         Button transmitButton = (Button) mView.findViewById(R.id.transmitButton);
         transmitButton.setOnClickListener(this);
+
+        if (getArguments() != null) {
+            setCourse(this.getArguments().getString(ARG_COURSE_GFX)) ;
+            mAthleteId = this.getArguments().getString(RaceFragment.ARG_ATHLETE) ;
+        }
 
         setUpMapIfNeeded();
         return mView;

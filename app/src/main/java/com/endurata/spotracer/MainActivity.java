@@ -1,5 +1,6 @@
 package com.endurata.spotracer;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
@@ -28,32 +29,41 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         readSettings() ;
 
         if (mAthleteId.length() == 0) {
             Intent settingsIntent = new Intent(this, Settings.class);
             startActivity(settingsIntent);
         }
-//9974250f-d2ae-41de-aa9c-563315b08e6a
+
+        //9974250f-d2ae-41de-aa9c-563315b08e6a
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+
+        Bundle args = new Bundle();
+        args.putString(RaceFragment.ARG_ATHLETE, mAthleteId);
+        Fragment frags[] = { new RaceFragment(), new FollowFragment(), new MapFragment() };
+        String fragNames[] = {"race", "follow", "map"} ;
+        String tabNames[] = {"Course", "Follow", "Map"} ;
+
         mTabHost = (TabHost)findViewById(android.R.id.tabhost);
         mTabHost.setup();
 
+        for (int i = 0; i < frags.length; i++) {
+            frags[i].setArguments(args) ;
+            ft.add(android.R.id.tabcontent, frags[i], fragNames[i]);
+            if (i > 0) ft.detach(frags[i]) ;
+
+            TabHost.TabSpec tab = mTabHost.newTabSpec(fragNames[i]);
+            tab.setIndicator(tabNames[i]);
+            tab.setContent(new DummyTabContent(getBaseContext()));
+            mTabHost.addTab(tab);
+        }
+        ft.commit();
+
         mTabHost.setOnTabChangedListener(tabChangeListener);
 
-        TabHost.TabSpec raceTab = mTabHost.newTabSpec("race");
-        raceTab.setIndicator("Course");//",getResources().getDrawable(R.drawable.android
-        raceTab.setContent(new DummyTabContent(getBaseContext()));
-        mTabHost.addTab(raceTab);
-
-        TabHost.TabSpec followTab = mTabHost.newTabSpec("follow");
-        followTab.setIndicator("Follow");
-        followTab.setContent(new DummyTabContent(getBaseContext()));
-        mTabHost.addTab(followTab);
-
-        TabHost.TabSpec mapTab = mTabHost.newTabSpec("map");
-        mapTab.setIndicator("Map");
-        mapTab.setContent(new DummyTabContent(getBaseContext()));
-        mTabHost.addTab(mapTab);
     }
 
     @Override
@@ -134,54 +144,25 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
         }
     }
 
-    private String mLastTab="0";
+    private String mLastTab="race";
     TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
 
         @Override
         public void onTabChanged(String tabId) {
-            mLastTab = tabId ;
             FragmentManager fm = getFragmentManager();
-            RaceFragment raceFragment = (RaceFragment) fm.findFragmentByTag("race");
-            FollowFragment followFragment = (FollowFragment) fm.findFragmentByTag("follow");
-            MapFragment mapFragment = (MapFragment) fm.findFragmentByTag("map");
             FragmentTransaction ft = fm.beginTransaction();
 
-            if(raceFragment!=null)
-                ft.detach(raceFragment);
-            if(followFragment!=null) {
-                ft.detach(followFragment);
-                if (mLastTab.equals("1"))
-                    followFragment.onFinish();
-            }
-            if(mapFragment!=null)
-                ft.detach(mapFragment);
+            Fragment last = fm.findFragmentByTag(mLastTab);
+            if(last != null) ft.detach(last);
+            mLastTab = tabId ;
 
-            if(tabId.equalsIgnoreCase("race")) {
-                if (raceFragment == null) {
-                    raceFragment = new RaceFragment() ;
-                    ft.add(android.R.id.tabcontent, raceFragment, "race");
-                } else {
-                    ft.attach(raceFragment);
-                }
-                raceFragment.setAthleteId(mAthleteId);
-            }else if(tabId.equalsIgnoreCase("follow")){
-                if(followFragment==null){
-                    followFragment = new FollowFragment() ;
-                    ft.add(android.R.id.tabcontent, followFragment, "follow");
-                }else{
-                    ft.attach(followFragment);
-                }
-                followFragment.setAthleteId(mAthleteId);
-                followFragment.setCourseID(mCourseId);
-            }else{
-                if(mapFragment==null){
-                    mapFragment = new MapFragment() ;
-                    ft.add(android.R.id.tabcontent, mapFragment, "map");
-                }else{
-                    ft.attach(mapFragment);
-                }
-                mapFragment.setCourse(mCourseGPX) ;
-            }
+            Bundle args = new Bundle();
+            args.putString(RaceFragment.ARG_ATHLETE, mAthleteId);
+            Fragment frag = fm.findFragmentByTag(tabId) ;
+            frag.getArguments().putString(RaceFragment.ARG_ATHLETE, mAthleteId);
+            frag.getArguments().putString(FollowFragment.ARG_COURSE,  mCourseId);
+            frag.getArguments().putString(MapFragment.ARG_COURSE_GFX, mCourseGPX);
+            ft.attach(frag);
             ft.commit();
         }
     };

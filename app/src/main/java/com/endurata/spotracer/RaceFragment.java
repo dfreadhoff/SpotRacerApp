@@ -62,19 +62,6 @@ public class RaceFragment extends ListFragment implements AdapterView.OnItemClic
     public RaceFragment() {
     }
 
-    public void setAthleteId(String athleteId) {
-        this.mAthleteId = mAthleteId;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        if (getArguments() != null) {
-            mAthleteId = getArguments().getString(ARG_ATHLETE);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -83,6 +70,10 @@ public class RaceFragment extends ListFragment implements AdapterView.OnItemClic
         // Set the adapter
         mListView = (ListView) view.findViewById(android.R.id.list);
         mRaceAdapter = new RaceArrayAdapter(getActivity());
+
+        if (getArguments() != null) {
+            mAthleteId = getArguments().getString(ARG_ATHLETE);
+        }
 
         // Populate the list from web service
         new RetrieveCoursesTask().execute();
