@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.endurata.spotracer.DataStructs.FollowAthleteStruct;
+import com.endurata.spotracer.MainActivity;
 import com.endurata.spotracer.R;
 
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ public class FollowArrayAdapter extends ArrayAdapter<String> {
 
         for (int i = 0; i < object.length; i++) {
             FollowAthleteStruct person = new FollowAthleteStruct(object[i]);
+            MainActivity.FOLLOWEES.put(person.getAthleteId(), person) ;
             mValues.add(person);
         }
     }
@@ -54,7 +56,6 @@ public class FollowArrayAdapter extends ArrayAdapter<String> {
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         View rowView = inflater.inflate(R.layout.item_follow, parent, false);
-
         TextView textView = (TextView) rowView.findViewById(R.id.list_item);
         textView.setText(mValues.get(position).getFirstName() + " " + mValues.get(position).getLastName());
 

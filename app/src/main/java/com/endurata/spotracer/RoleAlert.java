@@ -14,12 +14,16 @@ import android.view.ViewGroup;
  * A simple {@link Fragment} subclass.
  */
 public class RoleAlert extends DialogFragment implements DialogInterface.OnClickListener {
+    private boolean mShowUnregister = false ;
 
     private RoleAlertListener mListener = null ;
 
     public RoleAlert() {
     }
 
+    public void setUnregisterFlag() {
+        mShowUnregister = true ;
+    }
     public void addListener(RoleAlertListener listener){
         mListener = listener ;
     }
@@ -28,8 +32,7 @@ public class RoleAlert extends DialogFragment implements DialogInterface.OnClick
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity()) ;
         builder.setTitle("Role") ;
-        String items[] = {"Spectator","Racer"} ;
-        builder.setItems(items, this) ;
+        builder.setItems(mShowUnregister ? R.array.roleWunregister : R.array.role, this) ;
         builder.setNegativeButton("Cancel", this);
         return builder.create() ;
     }

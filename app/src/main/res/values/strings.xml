@@ -8,6 +8,22 @@
     <string name="trans_button_on">Start Transmitting</string>
     <string name="trans_button_off">End Transmitting</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="spectator">Spectator</string>
+    <string name="racer">Racer</string>
+    <string name="unregister">Unregister</string>
+
+    <string name="register_not">Not Registered</string>
+    <string name="register_racer">Registered as racer</string>
+    <string name="register_spectator">Registered as Spectator</string>
+
+    <string-array name="role">
+        <item>@string/spectator</item>
+        <item>@string/racer</item>
+    </string-array>
+
+    <string-array name="roleWunregister">
+        <item>@string/spectator</item>
+        <item>@string/racer</item>
+        <item>@string/unregister</item>
+    </string-array>
 </resources>

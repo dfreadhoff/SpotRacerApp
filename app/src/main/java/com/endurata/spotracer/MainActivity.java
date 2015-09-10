@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -17,13 +18,17 @@ import android.widget.TabHost;
 
 import com.endurata.spotracer.utils.WSAssistant;
 
+import java.util.HashMap;
+
 public class MainActivity extends FragmentActivity implements RaceFragment.OnRaceInteractionListener {
 
     private String mAthleteId;
     private String mCourseId;
     private TabHost mTabHost;
     private boolean mIsAthlete;
+    private boolean mIsRegistered ;
     private String mCourseGPX;
+    public static HashMap FOLLOWEES = new HashMap();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,8 +75,10 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
     public void onRaceInteraction(String raceData[]) {
         mCourseId = raceData[0] ;
         mCourseGPX = raceData[7] ;
+        mIsRegistered = (raceData[8].equals("1")) ;
 
         RoleAlert roleAlert = new RoleAlert();
+        if (mIsRegistered) roleAlert.setUnregisterFlag();
         roleAlert.show(getFragmentManager(), "roleAlert");
         roleAlert.addListener(new RoleAlert.RoleAlertListener(){
             @Override
@@ -79,6 +86,7 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
                 //Toast.makeText(MainActivity.this, "which is " + which, Toast.LENGTH_SHORT).show();
                 if (which != -2) {  // negative 2 is cancel
                     mIsAthlete = (which == 1) ;  // index 0 is spectator, index 1 is athlete
+                    new RegisterAthleteTask().execute(which==2 ? "false" : "true");  // if unregister, pass isAdd flag as false
                     mTabHost.setCurrentTab(1);
                 }
             }
@@ -128,22 +136,6 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
         mAthleteId = prefs.getString("AthleteId", "");
     }
 
-    private class RegisterAthleteTask extends AsyncTask<String,Void,String> {
-
-        protected String doInBackground(String... parms) {
-            WSAssistant wa2 = new WSAssistant("http://engine.endurata.com:8080/axis2/services/RacerTracerService/writeFollowingInfo");
-            wa2.setParameter("courseId", "24"); // Illinois Marathon
-            wa2.setParameter("spectatorId", "registered");
-            wa2.setParameter("athleteId", mAthleteId);
-            wa2.setParameter("isRacing", "true");
-            wa2.setParameter("isAdd", "true");
-            // Invoke the writeFollowingInfo service
-            wa2.invokeService();
-
-            return mAthleteId;
-        }
-    }
-
     private String mLastTab="race";
     TabHost.OnTabChangeListener tabChangeListener = new TabHost.OnTabChangeListener() {
 
@@ -166,4 +158,31 @@ public class MainActivity extends FragmentActivity implements RaceFragment.OnRac
             ft.commit();
         }
     };
-}
+
+
+    private class RegisterAthleteTask extends AsyncTask<String, Integer, Long> {
+
+        ProgressDialog progressDialog;
+
+        @Override
+        protected void onPreExecute() {
+            progressDialog = ProgressDialog.show(MainActivity.this, "", "Updating Participant");
+        }
+
+        protected Long doInBackground(String... parms) {
+            WSAssistant wa2 = new WSAssistant("http://engine.endurata.com:8080/axis2/services/RacerTracerService/" + (mIsRegistered  ? "updateRacingFlag" : "writeFollowingInfo"));
+            wa2.setParameter("courseId", mCourseId);
+            wa2.setParameter("spectatorId", "registered");
+            wa2.setParameter("athleteId", mAthleteId);
+            wa2.setParameter("isRacing", mIsAthlete ? "true" : "false");
+            wa2.setParameter("isAdd", parms[0]);
+            // Invoke the writeFollowingInfo service
+            String ret = wa2.invokeService();
+            Log.d("WS", ret) ;
+            return 0l;
+        }
+
+        protected void onPostExecute(Long result) {
+            progressDialog.dismiss();
+        }
+    }}

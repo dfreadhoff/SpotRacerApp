@@ -1,5 +1,7 @@
 package com.endurata.spotracer.DataStructs;
 
+import com.google.android.gms.maps.model.Marker;
+
 /**
  * Created by dfreadhoff on 8/25/2015.
  */
@@ -25,6 +27,14 @@ public class FollowAthleteStruct {
     private String mState;
     private String mCoutry;
     private String mIsFollowing;
+
+    private boolean mIsTransmitting;
+    public boolean isTransmitting() { return mIsTransmitting; }
+    public void setIsTransmitting(boolean isTransmitting) { this.mIsTransmitting = isTransmitting; }
+
+    private Marker mMarker ;
+    public Marker getMarker() { return mMarker; }
+    public void setMarker(Marker marker) { this.mMarker = marker; }
 
     public FollowAthleteStruct(String WsString) {
         String temp[] = WsString.split(",");

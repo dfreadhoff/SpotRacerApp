@@ -7,7 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.TextView;
 import com.endurata.spotracer.R;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Created by dfreadhoff on 8/21/2015.
@@ -48,11 +52,18 @@ public class RaceArrayAdapter extends ArrayAdapter<String> {
 
         View rowView = inflater.inflate(R.layout.item, parent, false);
 
+        String parts[] = values.get(position).split(",") ;
         TextView textView = (TextView) rowView.findViewById(R.id.list_item);
-        textView.setText(values.get(position).split(",")[1]);
+        textView.setText(parts[1]);
+
+        String raceDate = (parts[3].equals("null")) ? new SimpleDateFormat("yyyy-MM-dd").format(Calendar.getInstance().getTime()) : parts[3] ;
+        if (parts[8].equals("null"))parts[8] = "0" ;
+        if (parts[9].equals("null"))parts[9] = "0" ;
+        String registered = getContext().getResources().getString(parts[8].equals("0") ? R.string.register_not :
+                (parts[9].equals("0") ? R.string.register_spectator : R.string.register_racer)) ;
 
         TextView detailView = (TextView) rowView.findViewById(R.id.detail);
-        detailView.setText("2015-03-12");
+        detailView.setText(raceDate + ", " + registered);
 
         return rowView ;
     }
