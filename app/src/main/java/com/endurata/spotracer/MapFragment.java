@@ -70,7 +70,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
         this.mCourse = course;
     }
 
-    private String mCourse = "" ;
+    private String mCourse ;
 
     public static MapFragment newInstance(String param1, String param2) {
         MapFragment fragment = new MapFragment();
@@ -89,7 +89,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         // Get GPS location
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
@@ -120,30 +119,15 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
             mMap = ((SupportMapFragment) app.getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
             // Check if we were successful in obtaining the map.
             }
-        if (mMap != null && !mCourse.equals("Training.gpx")) {
-            setUpMap();
+        if (mMapIsDirty && mMap != null && !mCourse.equals("Training.gpx")) {
+            new RetrieveCourseGPXTask().execute();
         }
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-//        try {
-//            mListener = (OnFragmentInteractionListener) activity;
-//        } catch (ClassCastException e) {
-//            throw new ClassCastException(activity.toString()
-//                    + " must implement OnFragmentInteractionListener");
-//        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    private void setUpMap() {
-        if (mMapIsDirty) new RetrieveCourseGPXTask().execute();
     }
 
     @Override
@@ -154,26 +138,25 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
         Button b = (Button) v;
         if (b.getText().equals(transOn)) {
             b.setText(transOff);
-            //transmitLocation() ;
-            //mAthleteMarker = mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+            transmitLocation() ;
             mUpdateTimer = new SystemTimerAndroid(3000, this) ;
         } else {
             new GetAthletePositionTask().execute() ;
-            //mAthleteMarker.remove();
             b.setText(transOn);
-            //stopTransmitting() ;
+            stopTransmitting() ;
             mUpdateTimer.killTimer();
             mUpdateTimer = null ;
         }
+    }
+
+    public interface OnFragmentInteractionListener {
+        public void onFragmentInteraction(String id);
     }
 
     @Override
     public void onSystemTimeSignal() {
         Location location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);;
         if (location != null) {
-            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude()) ;
-            //mAthleteMarker.setPosition(currentLocation);
-            //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
             String lastLatitude = Location.convert(location.getLatitude(), Location.FORMAT_DEGREES);
             String lastLongitude = Location.convert(location.getLongitude(), Location.FORMAT_DEGREES);
             new SendAthletePositionTask().execute(lastLatitude, lastLongitude, "true");
@@ -196,9 +179,7 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {}
-
             public void onProviderEnabled(String provider) {}
-
             public void onProviderDisabled(String provider) {}
         };
 
@@ -227,10 +208,6 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
 
             return response;
         }
-    }
-
-    public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(String id);
     }
 
     private class RetrieveCourseGPXTask extends AsyncTask<String, Integer, String> {
@@ -280,44 +257,42 @@ public class MapFragment extends Fragment implements View.OnClickListener, Syste
             WSAssistant wa = new WSAssistant("http://engine.endurata.com:8080/axis2/services/RacerTracerService/getAthletesPosition?followingList=9974250f-d2ae-41de-aa9c-563315b08e6a");
             // Invoke the sendAthletePosition service
             String response = wa.invokeService();
-            return response;
-        }
 
-        @Override
-        protected void onPostExecute(String result) {
             Iterator i = MainActivity.FOLLOWEES.entrySet().iterator();
-            while(i.hasNext()) {
-                Map.Entry obj = (Map.Entry)i.next();
+            while (i.hasNext()) {
+                Map.Entry obj = (Map.Entry) i.next();
                 FollowAthleteStruct athlete = (FollowAthleteStruct) obj.getValue();
                 athlete.setIsTransmitting(false);
             }
 
-            String follows[] = result.split(";") ;
+            String follows[] = response.split(";");
             for (String person : follows) {
-                String athlete = person.split(",")[0] ;
-                Double latitude = Double.parseDouble(person.split(",")[1]) ;
-                Double longitude = Double.parseDouble(person.split(",")[2]) ;
-                LatLng currentPos = new LatLng(latitude, longitude) ;
+                String athlete = person.split(",")[0];
+                Double latitude = Double.parseDouble(person.split(",")[1]);
+                Double longitude = Double.parseDouble(person.split(",")[2]);
+                LatLng currentPos = new LatLng(latitude, longitude);
 
                 FollowAthleteStruct followee = (FollowAthleteStruct) MainActivity.FOLLOWEES.get(athlete);
-                followee.setIsTransmitting(true); ;
-                Marker athleteMarker = followee.getMarker() ;
+                followee.setIsTransmitting(true);
+                ;
+                Marker athleteMarker = followee.getMarker();
                 if (athleteMarker == null) {
                     followee.setMarker(mMap.addMarker(new MarkerOptions().position(currentPos).title(followee.getLastName())));
-                 } else {
+                } else {
                     athleteMarker.setPosition(currentPos);
                 }
 
             }
             Iterator j = MainActivity.FOLLOWEES.entrySet().iterator();
-            while(j.hasNext()) {
-                Map.Entry obj = (Map.Entry)j.next();
+            while (j.hasNext()) {
+                Map.Entry obj = (Map.Entry) j.next();
                 FollowAthleteStruct athlete = (FollowAthleteStruct) obj.getValue();
                 if (!athlete.isTransmitting() && athlete.getMarker() != null) {
                     athlete.getMarker().remove();
                     athlete.setMarker(null);
                 }
             }
+            return "" ;
         }
     }
 }
